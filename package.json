@@ -15,6 +15,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "globe.gl": "^2.45.1",
     "vue": "^3.5.29"
   },
   "devDependencies": {
