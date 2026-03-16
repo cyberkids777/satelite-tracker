@@ -1,4 +1,4 @@
-<script setup lang="js">
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Globe from 'globe.gl'
 
@@ -9,7 +9,7 @@ onMounted(() => {
   if (!globeContainer.value) return
 
   // Inicjalizacja Globe.gl
-  const world =  Globe()(globeContainer.value)
+  const world = new Globe()(globeContainer.value)
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
