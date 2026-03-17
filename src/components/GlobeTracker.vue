@@ -68,6 +68,9 @@ const calculatePositions = () => {
   satRecs.forEach(sat => {
     // Magia biblioteki: "Podaj mi pozycję i prędkość na dany czas"
     const positionAndVelocity = satellite.propagate(sat.satrec, now)
+
+    if (!positionAndVelocity) return
+
     const positionEci = positionAndVelocity.position
     const velocity = positionAndVelocity.velocity
 
@@ -113,6 +116,9 @@ const buildHistoryTrail = (satrec: any) => {
   for (let i = 90; i >= 0; i--) {
     const pastDate = new Date(now.getTime() - i * 60000)
     const positionAndVelocity = satellite.propagate(satrec, pastDate)
+
+    if (!positionAndVelocity) return;
+
     const positionEci = positionAndVelocity.position
 
     if (positionEci) {

@@ -15,33 +15,34 @@ let globe: any = null
 onMounted(() => {
   if (!globeContainer.value) return
 
-  globe = new Globe()(globeContainer.value)
+  const GlobeAny = Globe as any
+  globe = GlobeAny()(globeContainer.value)
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
 
-    // Ogon (Tylko dla aktualnie klikniętego satelity!)
+    // Ogon
     .pathPoints('points')
-    .pathPointLat(p => p.lat)
-    .pathPointLng(p => p.lng)
-    .pathPointAlt(p => p.alt)
+    .pathPointLat((p: any) => p.lat)
+    .pathPointLng((p: any) => p.lng)
+    .pathPointAlt((p: any) => p.alt)
     .pathColor(() => ['rgba(135, 206, 250, 0)', 'rgba(135, 206, 250, 0.9)'])
     .pathStroke(2.5)
     .pathResolution(3)
     .pathTransitionDuration(0)
 
-    // Etykiety (Armada Satelitów)
+    // Etykiety
     .labelLat('lat')
     .labelLng('lng')
     .labelAltitude('alt')
-    .labelText(d => d.name)
-    .labelSize(0.6) // Zmniejszona czcionka dla większej ilości obiektów
+    .labelText((d: any) => d.name)
+    .labelSize(0.6)
     .labelDotRadius(0.3)
     .labelDotOrientation(() => 'right')
     .labelColor(() => '#E0F7FA')
-    .labelResolution(2)
+    .labelResolution(3)
     .labelsTransitionDuration(0)
-    .onLabelClick((d) => emit('satellite-click', d))
+    .onLabelClick((d: any) => emit('satellite-click', d))
 
   globe.controls().autoRotate = false
 })
