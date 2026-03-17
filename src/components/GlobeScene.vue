@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import Globe from 'globe.gl'
 
 const props = defineProps<{
-  currentPoint: any | null
+  satellites: any[]
   history: any[]
 }>()
 
@@ -20,7 +20,7 @@ onMounted(() => {
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
 
-    // Ogon (Z rozdzielczością 3 i pocienieniem, jak prosiłeś)
+    // Ogon (Tylko dla aktualnie klikniętego satelity!)
     .pathPoints('points')
     .pathPointLat(p => p.lat)
     .pathPointLng(p => p.lng)
@@ -30,30 +30,31 @@ onMounted(() => {
     .pathResolution(3)
     .pathTransitionDuration(0)
 
-    // Etykieta
+    // Etykiety (Armada Satelitów)
     .labelLat('lat')
     .labelLng('lng')
     .labelAltitude('alt')
     .labelText(d => d.name)
-    .labelSize(0.9)
+    .labelSize(0.6) // Zmniejszona czcionka dla większej ilości obiektów
     .labelDotRadius(0.3)
     .labelDotOrientation(() => 'right')
     .labelColor(() => '#E0F7FA')
     .labelResolution(2)
     .labelsTransitionDuration(0)
-    .onLabelClick((d) => emit('satellite-click', d)) // Wypuszczamy event w górę!
+    .onLabelClick((d) => emit('satellite-click', d))
 
   globe.controls().autoRotate = false
 })
 
-// Reagowanie na zmiany z góry (od rodzica) i wtłaczanie ich do WebGL
-watch(() => props.currentPoint, (newVal) => {
-  if (globe && newVal) globe.labelsData([newVal])
-}, { deep: true })
+// Obserwujemy całą tablicę satelitów
+watch(() => props.satellites, (newVal) => {
+  if (globe) globe.labelsData(newVal)
+})
 
 watch(() => props.history, (newVal) => {
-  if (globe && newVal.length >= 2) globe.pathsData([{ points: newVal }])
-}, { deep: true })
+  // Rysuj ogon, tylko jeśli ma minimum 2 punkty, w przeciwnym razie wyczyść (pusta tablica [])
+  if (globe) globe.pathsData(newVal.length >= 2 ? [{ points: newVal }] : [])
+})
 </script>
 
 <template>
