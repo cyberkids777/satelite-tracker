@@ -38,7 +38,7 @@ const startTracking = async () => {
         try {
           // Kompilujemy tekst do rekordu matematycznego
           const satrec = satellite.twoline2satrec(tle1, tle2)
-          satRecs.push({ name, satrec })
+          satRecs.push({ id: satrec.satnum, name, satrec })
         } catch (e) {
           // Ignorujemy zepsute rekordy, jeśli jakieś są
         }
@@ -79,7 +79,7 @@ const calculatePositions = () => {
       const speedKmS = Math.sqrt(Math.pow(velocity.x, 2) + Math.pow(velocity.y, 2) + Math.pow(velocity.z, 2))
 
       currentPositions.push({
-        id: sat.name, // Unikalne ID to u nas nazwa np. "ISS (ZARYA)"
+        id: sat.id, // Unikalne ID to u nas to numer NORAD
         name: sat.name,
         lat: satellite.degreesLat(positionGd.latitude),
         lng: satellite.degreesLong(positionGd.longitude),
@@ -141,7 +141,7 @@ const handleSatelliteClick = (sat: any) => {
   selectedSat.value = sat
 
   // Szukamy oryginalnego rekordu TLE dla klikniętego satelity
-  const originalRecord = satRecs.find(s => s.name === sat.id)
+  const originalRecord = satRecs.find(s => s.id === sat.id)
   buildHistoryTrail(originalRecord?.satrec)
 }
 
