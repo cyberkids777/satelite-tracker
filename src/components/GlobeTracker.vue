@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
 import SatellitePanel from './ui/SatelitePanel.vue'
+import TopSatellitesPanel from './ui/TopSatellitesPanel.vue'
 import GlobeScene from './GlobeScene.vue'
 
 const status = ref('Inicjalizacja systemu...')
@@ -166,6 +167,14 @@ const closePanel = () => {
       />
     </transition>
 
+    <transition name="slide-right">
+      <TopSatellitesPanel
+        v-if="satellites.length > 0"
+        :satellites="satellites"
+        @select="handleSatelliteClick"
+      />
+    </transition>
+
     <GlobeScene
       :satellites="satellites"
       :history="history"
@@ -182,4 +191,7 @@ const closePanel = () => {
 
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
 .slide-enter-from, .slide-leave-to { opacity: 0; transform: translateX(-50px); }
+
+.slide-right-enter-active, .slide-right-leave-active { transition: all 0.5s ease; }
+.slide-right-enter-from, .slide-right-leave-to { opacity: 0; transform: translateX(50px); }
 </style>
