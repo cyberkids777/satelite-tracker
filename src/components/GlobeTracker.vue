@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
 import SatellitePanel from './ui/SatelitePanel.vue'
@@ -39,7 +40,7 @@ const startTracking = async () => {
           // Kompilujemy tekst do rekordu matematycznego
           const satrec = satellite.twoline2satrec(tle1, tle2)
           satRecs.push({ id: satrec.satnum, name, satrec })
-        } catch (e) {
+        } catch {
           // Ignorujemy zepsute rekordy, jeśli jakieś są
         }
       }
@@ -68,6 +69,9 @@ const calculatePositions = () => {
   satRecs.forEach(sat => {
     // Magia biblioteki: "Podaj mi pozycję i prędkość na dany czas"
     const positionAndVelocity = satellite.propagate(sat.satrec, now)
+
+    if (!positionAndVelocity) return
+
     const positionEci = positionAndVelocity.position
     const velocity = positionAndVelocity.velocity
 
@@ -113,6 +117,9 @@ const buildHistoryTrail = (satrec: any) => {
   for (let i = 90; i >= 0; i--) {
     const pastDate = new Date(now.getTime() - i * 60000)
     const positionAndVelocity = satellite.propagate(satrec, pastDate)
+
+    if (!positionAndVelocity) return;
+
     const positionEci = positionAndVelocity.position
 
     if (positionEci) {
