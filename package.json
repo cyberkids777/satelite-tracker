@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "globe.gl": "^2.45.1",
+    "satellite.js": "^6.0.2",
     "vue": "^3.5.29"
   },
   "devDependencies": {

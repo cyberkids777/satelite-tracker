@@ -1,91 +1,152 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
 import SatellitePanel from './ui/SatelitePanel.vue'
 import GlobeScene from './GlobeScene.vue'
 
-// --- STANY ---
 const status = ref('Inicjalizacja systemu...')
 const hasError = ref(false)
 const selectedSat = ref<any>(null)
 
-// Dane dla komponentu 3D
-const currentPoint = ref<any>(null)
+const satellites = ref<any[]>([])
 const history = ref<any[]>([])
 
-const API_KEY = import.meta.env.VITE_N2YO_API_KEY
-const NORAD_ID = 25544 // ISS
-const SECONDS = 300
-const TRAIL_LENGTH = 100
+// Surowe rekordy matematyczne TLE, z których wyliczamy pozycje
+let satRecs: any[] = []
+let animationInterval: number
 
-let trajectory: any[] = []
-let currentIndex = 0
-
-// --- LOGIKA API ---
 const startTracking = async () => {
   try {
-    status.value = 'Pobieranie telemetrii...'
-    const apiUrl = `https://api.n2yo.com/rest/v1/satellite/positions/${NORAD_ID}/0/0/0/${SECONDS}/&apiKey=${API_KEY}`
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
+    status.value = 'Pobieranie bazy danych z CelesTrak...'
+
+    // Pobieramy paczkę "100 Najjaśniejszych Satelitów" (W tym ISS)
+    const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`
 
     const response = await fetch(proxyUrl)
-    const data = await response.json()
+    const text = await response.text()
 
-    if (!data.positions) throw new Error('API nie zwróciło danych.')
+    // CelesTrak zwraca po prostu plik tekstowy. Każdy satelita to 3 linijki tekstu.
+    const lines = text.split('\n').map(l => l.trim())
+    for (let i = 0; i < lines.length; i += 3) {
+      const name = lines[i]
+      const tle1 = lines[i + 1]
+      const tle2 = lines[i + 2]
 
-    trajectory = data.positions.map((pos: any) => ({
-      name: data.info.satname || 'Nieznany obiekt',
-      id: NORAD_ID,
-      lat: pos.satlatitude || 0,
-      lng: pos.satlongitude || 0,
-      alt: (pos.sataltitude || 0) / 6371,
-      realAlt: pos.sataltitude || 0,
-      azimuth: pos.azimuth || 0,
-      timestamp: new Date(pos.timestamp * 1000).toLocaleTimeString()
-    }))
+      if (name && tle1 && tle2) {
+        try {
+          // Kompilujemy tekst do rekordu matematycznego
+          const satrec = satellite.twoline2satrec(tle1, tle2)
+          satRecs.push({ name, satrec })
+        } catch (e) {
+          // Ignorujemy zepsute rekordy, jeśli jakieś są
+        }
+      }
+    }
 
-    status.value = 'Śledzenie i zapisywanie trasy'
+    status.value = `Radar aktywny: Śledzenie ${satRecs.length} obiektów.`
     hasError.value = false
 
-    // Główna pętla czasowa
-    setInterval(() => {
-      if (currentIndex < trajectory.length) {
-        const point = trajectory[currentIndex]
-
-        currentPoint.value = point // Przekazanie do 3D
-        history.value.push(point)  // Przekazanie historii do 3D
-
-        if (history.value.length > TRAIL_LENGTH) {
-          history.value.shift()
-        }
-
-        // Aktualizacja otwartego panelu bocznego
-        if (selectedSat.value && selectedSat.value.id === point.id) {
-          selectedSat.value = point
-        }
-
-        currentIndex++
-      } else {
-        status.value = 'Trasa zakończona. Odśwież stronę.'
-      }
-    }, 1000)
+    // Zamiast pytać API, wyliczamy pozycje samodzielnie na naszym komputerze!
+    animationInterval = setInterval(calculatePositions, 1000)
+    calculatePositions()
 
   } catch (error) {
     console.error(error)
-    status.value = 'Błąd pobierania danych.'
+    status.value = 'Błąd pobierania bazy TLE.'
     hasError.value = true
   }
+}
+
+// Funkcja, która dla każdego satelity wylicza jego fizyczną pozycję na "TERAZ"
+const calculatePositions = () => {
+  const now = new Date()
+  const gmst = satellite.gstime(now)
+  const currentPositions: any[] = []
+
+  satRecs.forEach(sat => {
+    // Magia biblioteki: "Podaj mi pozycję i prędkość na dany czas"
+    const positionAndVelocity = satellite.propagate(sat.satrec, now)
+    const positionEci = positionAndVelocity.position
+    const velocity = positionAndVelocity.velocity
+
+    if (positionEci && velocity) {
+      // Zamiana wektorów kosmicznych na długość i szerokość geograficzną
+      const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
+
+      // Obliczanie prędkości (wzór na długość wektora)
+      const speedKmS = Math.sqrt(Math.pow(velocity.x, 2) + Math.pow(velocity.y, 2) + Math.pow(velocity.z, 2))
+
+      currentPositions.push({
+        id: sat.name, // Unikalne ID to u nas nazwa np. "ISS (ZARYA)"
+        name: sat.name,
+        lat: satellite.degreesLat(positionGd.latitude),
+        lng: satellite.degreesLong(positionGd.longitude),
+        alt: positionGd.height / 6371,
+        realAlt: positionGd.height,
+        speed: speedKmS * 3600, // zamiana km/s na km/h
+        timestamp: now.toLocaleTimeString()
+      })
+    }
+  })
+
+  // Wypychamy wyliczoną armię do GlobeScene.vue
+  satellites.value = currentPositions
+
+  // Jeśli panel boczny jest otwarty, odświeżamy cyferki w czasie rzeczywistym
+  if (selectedSat.value) {
+    const updatedSat = currentPositions.find(s => s.id === selectedSat.value.id)
+    if (updatedSat) {
+      selectedSat.value = updatedSat
+    }
+  }
+}
+
+// Zamiast zbierać ogon punkt po punkcie, wyliczamy go natychmiast z matematyki!
+const buildHistoryTrail = (satrec: any) => {
+  if (!satrec) return
+  const now = new Date()
+  const pastPositions = []
+
+  // Idziemy 90 minut wstecz (przeciętny czas okrążenia Ziemi), co 1 minutę
+  for (let i = 90; i >= 0; i--) {
+    const pastDate = new Date(now.getTime() - i * 60000)
+    const positionAndVelocity = satellite.propagate(satrec, pastDate)
+    const positionEci = positionAndVelocity.position
+
+    if (positionEci) {
+      const gmst = satellite.gstime(pastDate)
+      const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
+      pastPositions.push({
+        lat: satellite.degreesLat(positionGd.latitude),
+        lng: satellite.degreesLong(positionGd.longitude),
+        alt: positionGd.height / 6371
+      })
+    }
+  }
+  history.value = pastPositions
 }
 
 onMounted(() => {
   startTracking()
 })
 
-// Obsługa eventów z dzieci
+onUnmounted(() => {
+  clearInterval(animationInterval)
+})
+
+// Kliknięcie w etykietę otwiera panel i NATYCHMIAST rysuje cały ogon
 const handleSatelliteClick = (sat: any) => {
   selectedSat.value = sat
+
+  // Szukamy oryginalnego rekordu TLE dla klikniętego satelity
+  const originalRecord = satRecs.find(s => s.name === sat.id)
+  buildHistoryTrail(originalRecord?.satrec)
 }
+
 const closePanel = () => {
   selectedSat.value = null
+  history.value = [] // Po zamknięciu panelu, chowamy również ogon
 }
 </script>
 
@@ -106,7 +167,7 @@ const closePanel = () => {
     </transition>
 
     <GlobeScene
-      :current-point="currentPoint"
+      :satellites="satellites"
       :history="history"
       @satellite-click="handleSatelliteClick"
     />
