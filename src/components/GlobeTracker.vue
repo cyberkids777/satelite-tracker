@@ -23,7 +23,7 @@ const startTracking = async () => {
 
     // Pobieramy paczkę "100 Najjaśniejszych Satelitów" (W tym ISS)
     const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
 
     const response = await fetch(proxyUrl)
     const text = await response.text()
