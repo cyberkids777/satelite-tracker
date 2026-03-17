@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
-import SatellitePanel from '/ui/SatelitePanel.vue'
+import SatellitePanel from './ui/SatelitePanel.vue'
 import GlobeScene from './GlobeScene.vue'
 
 const status = ref('Inicjalizacja systemu...')
