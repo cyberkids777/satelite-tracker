@@ -18,7 +18,7 @@ defineEmits(['close'])
       <div class="data-row"><span class="label">Wysokość:</span><span class="value">{{ satellite.realAlt.toFixed(2) }} km</span></div>
       <div class="data-row"><span class="label">Szerokość Geog.:</span><span class="value">{{ satellite.lat.toFixed(4) }}°</span></div>
       <div class="data-row"><span class="label">Długość Geog.:</span><span class="value">{{ satellite.lng.toFixed(4) }}°</span></div>
-      <div class="data-row"><span class="label">Azymut:</span><span class="value highlight">{{ satellite.azimuth.toFixed(2) }}°</span></div>
+      <div class="data-row"><span class="label">Prędkość:</span><span class="value highlight">{{ satellite.speed.toFixed(0) }} km/h</span></div>
       <div class="data-row"><span class="label">Ostatni odczyt:</span><span class="value">{{ satellite.timestamp }}</span></div>
     </div>
   </div>
