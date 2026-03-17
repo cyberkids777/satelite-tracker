@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
 import SatellitePanel from './ui/SatelitePanel.vue'
@@ -39,7 +40,7 @@ const startTracking = async () => {
           // Kompilujemy tekst do rekordu matematycznego
           const satrec = satellite.twoline2satrec(tle1, tle2)
           satRecs.push({ id: satrec.satnum, name, satrec })
-        } catch (e) {
+        } catch {
           // Ignorujemy zepsute rekordy, jeśli jakieś są
         }
       }

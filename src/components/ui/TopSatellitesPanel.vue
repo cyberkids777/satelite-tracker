@@ -1,11 +1,12 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed } from 'vue'
 
 const props = defineProps<{
   satellites: any[]
 }>()
 
-const emit = defineEmits(['select'])
+defineEmits(['select'])
 
 // Definiujemy znane obiekty, które chcemy wyciągnąć na szczyt listy
 const famousNames = ['ISS (ZARYA)', 'HST', 'TIANGONG', 'SUOMI NPP', 'AQUA']
