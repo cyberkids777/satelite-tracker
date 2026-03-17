@@ -21,27 +21,30 @@ const startTracking = async () => {
   try {
     status.value = 'Pobieranie bazy danych z CelesTrak...'
 
-    // Pobieramy paczkę "100 Najjaśniejszych Satelitów" (W tym ISS)
+    // 1. BEZPOŚREDNI STRZAŁ. CelesTrak natywnie wspiera CORS!
     const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    const response = await fetch(url)
 
-    const response = await fetch(proxyUrl)
+    if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`)
     const text = await response.text()
 
-    // CelesTrak zwraca po prostu plik tekstowy. Każdy satelita to 3 linijki tekstu.
+    if (text.trim().startsWith('<')) {
+      throw new Error('API zwróciło stronę HTML zamiast danych. Prawdopodobnie blokada.')
+    }
+
     const lines = text.split('\n').map(l => l.trim())
     for (let i = 0; i < lines.length; i += 3) {
       const name = lines[i]
       const tle1 = lines[i + 1]
       const tle2 = lines[i + 2]
 
-      if (name && tle1 && tle2) {
+      // Ignorujemy każdy inny śmieć, który tu trafi.
+      if (name && tle1 && tle2 && tle1.startsWith('1 ') && tle2.startsWith('2 ')) {
         try {
-          // Kompilujemy tekst do rekordu matematycznego
           const satrec = satellite.twoline2satrec(tle1, tle2)
           satRecs.push({ id: satrec.satnum, name, satrec })
         } catch {
-          // Ignorujemy zepsute rekordy, jeśli jakieś są
+          // Ignorujemy zepsute rekordy
         }
       }
     }
@@ -78,9 +81,13 @@ const calculatePositions = () => {
     if (positionEci && velocity) {
       // Zamiana wektorów kosmicznych na długość i szerokość geograficzną
       const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
-
+      const lat = satellite.degreesLat(positionGd.latitude)
+      const lng = satellite.degreesLong(positionGd.longitude)
+      const alt = positionGd.height / 6371
       // Obliczanie prędkości (wzór na długość wektora)
       const speedKmS = Math.sqrt(Math.pow(velocity.x, 2) + Math.pow(velocity.y, 2) + Math.pow(velocity.z, 2))
+
+      if (isNaN(lat) || isNaN(lng) || isNaN(alt)) return
 
       currentPositions.push({
         id: sat.id, // Unikalne ID to u nas to numer NORAD
@@ -125,11 +132,13 @@ const buildHistoryTrail = (satrec: any) => {
     if (positionEci) {
       const gmst = satellite.gstime(pastDate)
       const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
-      pastPositions.push({
-        lat: satellite.degreesLat(positionGd.latitude),
-        lng: satellite.degreesLong(positionGd.longitude),
-        alt: positionGd.height / 6371
-      })
+      const lat = satellite.degreesLat(positionGd.latitude)
+      const lng = satellite.degreesLong(positionGd.longitude)
+      const alt = positionGd.height / 6371
+
+      if (!isNaN(lat) && !isNaN(lng) && !isNaN(alt)) {
+        pastPositions.push({ lat, lng, alt })
+      }
     }
   }
   history.value = pastPositions
