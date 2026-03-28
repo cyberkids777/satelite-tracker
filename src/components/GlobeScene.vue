@@ -1,17 +1,25 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import Globe from 'globe.gl'
 
-const props = defineProps<{
-  satellites: any[]
-  history: any[]
-}>()
-
 const emit = defineEmits(['satellite-click'])
-
 const globeContainer = ref<HTMLElement | null>(null)
 let globe: any = null
+
+const updateSatellites = (satellites: any[]) => {
+  if (globe) {
+    globe.htmlElementsData(satellites)
+  }
+}
+
+const updateHistory = (history: any[]) => {
+  if (globe) {
+    globe.pathsData(history.length >= 2 ? [{ points: history }] : [])
+  }
+}
+
+defineExpose({ updateSatellites, updateHistory })
 
 onMounted(() => {
   if (!globeContainer.value) return
@@ -22,7 +30,7 @@ onMounted(() => {
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
 
-    // Ogon
+    // --- OGON ORBITY ---
     .pathPoints('points')
     .pathPointLat((p: any) => p.lat)
     .pathPointLng((p: any) => p.lng)
@@ -32,30 +40,26 @@ onMounted(() => {
     .pathResolution(3)
     .pathTransitionDuration(0)
 
-    // Etykiety
-    .labelLat('lat')
-    .labelLng('lng')
-    .labelAltitude('alt')
-    .labelText((d: any) => d.name)
-    .labelSize(0.6)
-    .labelDotRadius(0.3)
-    .labelDotOrientation(() => 'right')
-    .labelColor(() => '#E0F7FA')
-    .labelResolution(3)
-    .labelsTransitionDuration(0)
-    .onLabelClick((d: any) => emit('satellite-click', d))
+    .htmlElement((d: any) => {
+      // Tworzymy zwykły tekst HTML, który przesuwa się razem z kamerą
+      const el = document.createElement('div');
+      el.innerHTML = `${d.name}`;
+      el.style.color = '#E0F7FA';
+      el.style.fontSize = '12px';
+      el.style.fontWeight = '600';
+      el.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9)'; // Cień, żeby był czytelny na białym tle chmur
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'pointer';
+      el.style.whiteSpace = 'nowrap';
+      el.onclick = () => emit('satellite-click', d);
+      return el;
+    })
+    .htmlLat('lat')
+    .htmlLng('lng')
+    .htmlAltitude('alt')
+    .htmlTransitionDuration(1000)
 
   globe.controls().autoRotate = false
-})
-
-// Obserwujemy całą tablicę satelitów
-watch(() => props.satellites, (newVal) => {
-  if (globe) globe.labelsData(newVal)
-})
-
-watch(() => props.history, (newVal) => {
-  // Rysuj ogon, tylko jeśli ma minimum 2 punkty, w przeciwnym razie wyczyść (pusta tablica [])
-  if (globe) globe.pathsData(newVal.length >= 2 ? [{ points: newVal }] : [])
 })
 </script>
 

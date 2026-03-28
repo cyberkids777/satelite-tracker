@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, onUnmounted } from 'vue'
-import * as satellite from 'satellite.js' // Import naszej nowej biblioteki
+import * as satellite from 'satellite.js'
 import SatellitePanel from './ui/SatelitePanel.vue'
 import TopSatellitesPanel from './ui/TopSatellitesPanel.vue'
 import GlobeScene from './GlobeScene.vue'
@@ -9,12 +9,13 @@ import GlobeScene from './GlobeScene.vue'
 const status = ref('Inicjalizacja systemu...')
 const hasError = ref(false)
 const selectedSat = ref<any>(null)
+const uiTrigger = ref(0)
 
-const satellites = ref<any[]>([])
-const history = ref<any[]>([])
+// Referencja do komponentu 3D, pozwalająca na bezpośrednie wstrzykiwanie danych
+const globeSceneRef = ref<any>(null)
 
-// Surowe rekordy matematyczne TLE, z których wyliczamy pozycje
-let satRecs: any[] = []
+let rawSatellites: any[] = []
+let rawHistory: any[] = []
 let animationInterval: number
 
 const startTracking = async () => {
@@ -23,18 +24,17 @@ const startTracking = async () => {
 
     const CACHE_KEY = 'celestrak_data'
     const CACHE_TIME_KEY = 'celestrak_timestamp'
-    const CACHE_DURATION = 2 * 60 * 60 * 1000
+    const CACHE_DURATION = 2 * 60 * 60 * 1000 // 2 godziny w milisekundach
 
     const cachedData = localStorage.getItem(CACHE_KEY)
     const cachedTime = localStorage.getItem(CACHE_TIME_KEY)
     const now = Date.now()
 
     if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
-      status.value = 'Wczytywanie bazy z pamięci podręcznej (Cache)...'
+      status.value = 'Wczytywanie bazy z pamięci podręcznej (Cache)'
       text = cachedData
     } else {
-
-      status.value = 'Pobieranie bazy danych z CelesTrak...'
+      status.value = 'Pobieranie nowej bazy z CelesTrak'
       const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
       const response = await fetch(url)
 
@@ -42,7 +42,7 @@ const startTracking = async () => {
       text = await response.text()
 
       if (text.trim().startsWith('<')) {
-        throw new Error('API zwróciło stronę HTML zamiast danych. Prawdopodobnie blokada.')
+        throw new Error('API zwróciło stronę HTML. Prawdopodobnie blokada (Ban).')
       }
 
       localStorage.setItem(CACHE_KEY, text)
@@ -52,7 +52,7 @@ const startTracking = async () => {
     const lines = text.split('\n').map(l => l.trim())
     for (let i = 0; i < lines.length; i += 3) {
 
-      if (satRecs.length >= 100) break;
+      if (rawSatellites.length >= 150) break;
 
       const name = lines[i]
       const tle1 = lines[i + 1]
@@ -61,22 +61,26 @@ const startTracking = async () => {
       if (name && tle1 && tle2 && tle1.startsWith('1 ') && tle2.startsWith('2 ')) {
         try {
           const satrec = satellite.twoline2satrec(tle1, tle2)
-          satRecs.push({ id: satrec.satnum, name, satrec })
-        } catch {
-          // Ignorujemy zepsute rekordy
-        }
+          rawSatellites.push({
+            id: satrec.satnum,
+            name: name,
+            satrec: satrec,
+            lat: 0, lng: 0, alt: 0, realAlt: 0, speed: 0, timestamp: ''
+          })
+        } catch { }
       }
     }
 
-    status.value = `Radar aktywny: Śledzenie ${satRecs.length} obiektów.`
+    status.value = `Radar aktywny: Śledzenie ${rawSatellites.length} obiektów.`
     hasError.value = false
 
-    animationInterval = setInterval(calculatePositions, 1000)
+    // Pierwsze wyliczenie i start pętli
     calculatePositions()
+    animationInterval = window.setInterval(calculatePositions, 1000)
 
   } catch (error) {
     console.error(error)
-    status.value = 'Błąd pobierania bazy TLE.'
+    status.value = 'Błąd pobierania bazy TLE. Spróbuj ponownie później.'
     hasError.value = true
   }
 }
@@ -84,65 +88,59 @@ const startTracking = async () => {
 const calculatePositions = () => {
   const now = new Date()
   const gmst = satellite.gstime(now)
-  const currentPositions: any[] = []
 
-  satRecs.forEach(sat => {
-
+  // Aktualizujemy pozycje starych obiektów
+  rawSatellites.forEach(sat => {
     const positionAndVelocity = satellite.propagate(sat.satrec, now)
-
     if (!positionAndVelocity) return
 
     const positionEci = positionAndVelocity.position
     const velocity = positionAndVelocity.velocity
 
     if (positionEci && velocity) {
-      // Zamiana wektorów kosmicznych na długość i szerokość geograficzną
       const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
       const lat = satellite.degreesLat(positionGd.latitude)
       const lng = satellite.degreesLong(positionGd.longitude)
       const alt = positionGd.height / 6371
-      // Obliczanie prędkości (wzór na długość wektora)
       const speedKmS = Math.sqrt(Math.pow(velocity.x, 2) + Math.pow(velocity.y, 2) + Math.pow(velocity.z, 2))
 
       if (isNaN(lat) || isNaN(lng) || isNaN(alt)) return
 
-      currentPositions.push({
-        id: sat.id, // Unikalne ID to u nas to numer NORAD
-        name: sat.name,
-        lat: satellite.degreesLat(positionGd.latitude),
-        lng: satellite.degreesLong(positionGd.longitude),
-        alt: positionGd.height / 6371,
-        realAlt: positionGd.height,
-        speed: speedKmS * 3600, // zamiana km/s na km/h
-        timestamp: now.toLocaleTimeString()
-      })
+      sat.lat = lat
+      sat.lng = lng
+      sat.alt = alt
+      sat.realAlt = positionGd.height
+      sat.speed = speedKmS * 3600
+      sat.timestamp = now.toLocaleTimeString()
     }
   })
 
-  // Wypychamy wyliczoną armię do GlobeScene.vue
-  satellites.value = currentPositions
+  if (globeSceneRef.value) {
+    globeSceneRef.value.updateSatellites(rawSatellites)
+  }
 
-  // Jeśli panel boczny jest otwarty, odświeżamy cyferki w czasie rzeczywistym
+  // Odświeżenie danych w panelu lewym
   if (selectedSat.value) {
-    const updatedSat = currentPositions.find(s => s.id === selectedSat.value.id)
+    const updatedSat = rawSatellites.find(s => s.id === selectedSat.value.id)
     if (updatedSat) {
-      selectedSat.value = updatedSat
+      selectedSat.value = { ...updatedSat }
     }
   }
+
+  uiTrigger.value++
 }
 
-// Zamiast zbierać ogon punkt po punkcie, wyliczamy go natychmiast z matematyki!
-const buildHistoryTrail = (satrec: any) => {
-  if (!satrec) return
+const buildHistoryTrail = (sat: any) => {
+  if (!sat || !sat.satrec) return
   const now = new Date()
   const pastPositions = []
 
-  // Idziemy 90 minut wstecz (przeciętny czas okrążenia Ziemi), co 1 minutę
+  // Wyliczanie ogona dla 90 minut wstecz
   for (let i = 90; i >= 0; i--) {
     const pastDate = new Date(now.getTime() - i * 60000)
-    const positionAndVelocity = satellite.propagate(satrec, pastDate)
+    const positionAndVelocity = satellite.propagate(sat.satrec, pastDate)
 
-    if (!positionAndVelocity) return;
+    if (!positionAndVelocity) continue;
 
     const positionEci = positionAndVelocity.position
 
@@ -158,7 +156,12 @@ const buildHistoryTrail = (satrec: any) => {
       }
     }
   }
-  history.value = pastPositions
+
+  rawHistory = pastPositions
+
+  if (globeSceneRef.value) {
+    globeSceneRef.value.updateHistory(rawHistory)
+  }
 }
 
 onMounted(() => {
@@ -169,18 +172,19 @@ onUnmounted(() => {
   clearInterval(animationInterval)
 })
 
-// Kliknięcie w etykietę otwiera panel i NATYCHMIAST rysuje cały ogon
 const handleSatelliteClick = (sat: any) => {
   selectedSat.value = sat
-
-  // Szukamy oryginalnego rekordu TLE dla klikniętego satelity
-  const originalRecord = satRecs.find(s => s.id === sat.id)
-  buildHistoryTrail(originalRecord?.satrec)
+  buildHistoryTrail(sat)
 }
 
 const closePanel = () => {
   selectedSat.value = null
-  history.value = [] // Po zamknięciu panelu, chowamy również ogon
+  rawHistory = []
+
+  // Ukrywamy ogon
+  if (globeSceneRef.value) {
+    globeSceneRef.value.updateHistory(rawHistory)
+  }
 }
 </script>
 
@@ -202,15 +206,15 @@ const closePanel = () => {
 
     <transition name="slide-right">
       <TopSatellitesPanel
-        v-if="satellites.length > 0"
-        :satellites="satellites"
+        v-if="rawSatellites.length > 0"
+        :satellites="rawSatellites"
+        :trigger="uiTrigger"
         @select="handleSatelliteClick"
       />
     </transition>
 
     <GlobeScene
-      :satellites="satellites"
-      :history="history"
+      ref="globeSceneRef"
       @satellite-click="handleSatelliteClick"
     />
   </div>
