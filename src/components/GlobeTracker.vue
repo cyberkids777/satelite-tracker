@@ -19,26 +19,45 @@ let animationInterval: number
 
 const startTracking = async () => {
   try {
-    status.value = 'Pobieranie bazy danych z CelesTrak...'
+    let text = ''
 
-    // 1. BEZPOŚREDNI STRZAŁ. CelesTrak natywnie wspiera CORS!
-    const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
-    const response = await fetch(url)
+    const CACHE_KEY = 'celestrak_data'
+    const CACHE_TIME_KEY = 'celestrak_timestamp'
+    const CACHE_DURATION = 2 * 60 * 60 * 1000
 
-    if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`)
-    const text = await response.text()
+    const cachedData = localStorage.getItem(CACHE_KEY)
+    const cachedTime = localStorage.getItem(CACHE_TIME_KEY)
+    const now = Date.now()
 
-    if (text.trim().startsWith('<')) {
-      throw new Error('API zwróciło stronę HTML zamiast danych. Prawdopodobnie blokada.')
+    if (cachedData && cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
+      status.value = 'Wczytywanie bazy z pamięci podręcznej (Cache)...'
+      text = cachedData
+    } else {
+
+      status.value = 'Pobieranie bazy danych z CelesTrak...'
+      const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle'
+      const response = await fetch(url)
+
+      if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`)
+      text = await response.text()
+
+      if (text.trim().startsWith('<')) {
+        throw new Error('API zwróciło stronę HTML zamiast danych. Prawdopodobnie blokada.')
+      }
+
+      localStorage.setItem(CACHE_KEY, text)
+      localStorage.setItem(CACHE_TIME_KEY, now.toString())
     }
 
     const lines = text.split('\n').map(l => l.trim())
     for (let i = 0; i < lines.length; i += 3) {
+
+      if (satRecs.length >= 100) break;
+
       const name = lines[i]
       const tle1 = lines[i + 1]
       const tle2 = lines[i + 2]
 
-      // Ignorujemy każdy inny śmieć, który tu trafi.
       if (name && tle1 && tle2 && tle1.startsWith('1 ') && tle2.startsWith('2 ')) {
         try {
           const satrec = satellite.twoline2satrec(tle1, tle2)
@@ -52,7 +71,6 @@ const startTracking = async () => {
     status.value = `Radar aktywny: Śledzenie ${satRecs.length} obiektów.`
     hasError.value = false
 
-    // Zamiast pytać API, wyliczamy pozycje samodzielnie na naszym komputerze!
     animationInterval = setInterval(calculatePositions, 1000)
     calculatePositions()
 
@@ -63,14 +81,13 @@ const startTracking = async () => {
   }
 }
 
-// Funkcja, która dla każdego satelity wylicza jego fizyczną pozycję na "TERAZ"
 const calculatePositions = () => {
   const now = new Date()
   const gmst = satellite.gstime(now)
   const currentPositions: any[] = []
 
   satRecs.forEach(sat => {
-    // Magia biblioteki: "Podaj mi pozycję i prędkość na dany czas"
+
     const positionAndVelocity = satellite.propagate(sat.satrec, now)
 
     if (!positionAndVelocity) return
