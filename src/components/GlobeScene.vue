@@ -68,5 +68,17 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.globe-wrapper { width: 100vw; height: 100vh; overflow: hidden; background-color: #000; cursor: crosshair; }
+
+.globe-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000;
+  cursor: crosshair;
+}
+
 </style>
