@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   satellites: any[]
+  trigger?: number
 }>()
 
 defineEmits(['select'])
@@ -12,6 +13,8 @@ defineEmits(['select'])
 const famousNames = ['ISS (ZARYA)', 'HST', 'TIANGONG', 'SUOMI NPP', 'AQUA']
 
 const topSatellites = computed(() => {
+  const _tick = props.trigger;
+
   if (!props.satellites.length) return []
 
   // Szukamy najpopularniejszych
@@ -37,7 +40,7 @@ const topSatellites = computed(() => {
       >
         <div class="sat-info">
           <span class="sat-name">{{ sat.name }}</span>
-          <span class="sat-alt">Wysokość: {{ sat.realAlt.toFixed(0) }} km</span>
+          <span class="sat-alt">Wysokość: {{ sat.realAlt ? sat.realAlt.toFixed(0) : 0 }} km</span>
         </div>
         <span class="arrow">➔</span>
       </li>

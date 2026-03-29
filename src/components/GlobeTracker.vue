@@ -206,7 +206,7 @@ const closePanel = () => {
 
     <transition name="slide-right">
       <TopSatellitesPanel
-        v-if="rawSatellites.length > 0"
+        v-if="uiTrigger > 0"
         :satellites="rawSatellites"
         :trigger="uiTrigger"
         @select="handleSatelliteClick"
