@@ -13,6 +13,7 @@ defineEmits(['select'])
 const famousNames = ['ISS (ZARYA)', 'HST', 'TIANGONG', 'SUOMI NPP', 'AQUA']
 
 const topSatellites = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _tick = props.trigger;
 
   if (!props.satellites.length) return []
