@@ -223,7 +223,7 @@ const closePanel = () => {
 <style scoped>
 .tracker-container { position: relative; width: 100vw; height: 100vh; }
 .top-status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(15, 15, 15, 0.85); padding: 10px 25px; border-radius: 30px; border: 1px solid #333; font-family: sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: none; }
-.success-text { color: #4CAF50; font-weight: bold; margin: 0; }
+.success-text { color:#E0F7FA; font-weight: bold; margin: 0; }
 .error-text { color: #f44336; font-weight: bold; margin: 0; }
 
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
@@ -231,4 +231,11 @@ const closePanel = () => {
 
 .slide-right-enter-active, .slide-right-leave-active { transition: all 0.5s ease; }
 .slide-right-enter-from, .slide-right-leave-to { opacity: 0; transform: translateX(50px); }
+
+@media (max-width: 768px) {
+  .slide-enter-from, .slide-leave-to {
+    opacity: 0;
+    transform: translateY(50px) translateX(0);
+  }
+}
 </style>

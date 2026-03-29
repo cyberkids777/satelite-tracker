@@ -45,4 +45,20 @@ defineEmits(['close'])
 .label { color: #aaa; }
 .value { font-weight: 600; text-align: right; }
 .highlight { color: #ffb74d; }
+
+@media (max-width: 768px) {
+  .side-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    max-height: 45vh;
+    overflow-y: auto;
+    padding-bottom: 30px;
+  }
+}
 </style>
