@@ -175,6 +175,10 @@ onUnmounted(() => {
 const handleSatelliteClick = (sat: any) => {
   selectedSat.value = sat
   buildHistoryTrail(sat)
+
+  if (globeSceneRef.value && sat.lat !== undefined && sat.lng !== undefined) {
+    globeSceneRef.value.focusOn(sat.lat, sat.lng, sat.alt)
+  }
 }
 
 const closePanel = () => {
