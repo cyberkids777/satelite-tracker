@@ -225,7 +225,7 @@ const closePanel = () => {
 </template>
 
 <style scoped>
-.tracker-container { position: relative; width: 100vw; height: 100vh; }
+.tracker-container { position: relative; width: 100vw; height: 100dvh; }
 .top-status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(15, 15, 15, 0.85); padding: 10px 25px; border-radius: 30px; border: 1px solid #333; font-family: sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: none; }
 .success-text { color:#E0F7FA; font-weight: bold; margin: 0; }
 .error-text { color: #f44336; font-weight: bold; margin: 0; }
