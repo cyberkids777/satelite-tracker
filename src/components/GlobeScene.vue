@@ -19,7 +19,14 @@ const updateHistory = (history: any[]) => {
   }
 }
 
-defineExpose({ updateSatellites, updateHistory })
+const focusOn = (lat: number, lng: number, satAltitude: number) => {
+  if (globe) {
+    const cameraAlt = satAltitude + 1.2;
+    globe.pointOfView({ lat, lng, altitude: cameraAlt }, 800)
+  }
+}
+
+defineExpose({ updateSatellites, updateHistory, focusOn })
 
 onMounted(() => {
   if (!globeContainer.value) return
