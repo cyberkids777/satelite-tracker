@@ -26,7 +26,13 @@ const focusOn = (lat: number, lng: number, satAltitude: number) => {
   }
 }
 
-defineExpose({ updateSatellites, updatePaths, focusOn })
+const updateUserLocation = (location: { lat: number, lng: number } | null) => {
+  if (globe) {
+    globe.ringsData(location ? [location] : [])
+  }
+}
+
+defineExpose({ updateSatellites, updatePaths, focusOn, updateUserLocation })
 
 onMounted(() => {
   if (!globeContainer.value) return
