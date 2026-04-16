@@ -6,6 +6,7 @@ import SatellitePanel from './ui/SatelitePanel.vue'
 import TopSatellitesPanel from './ui/TopSatellitesPanel.vue'
 import GlobeScene from './GlobeScene.vue'
 import SearchBar from "./ui/SearchBar.vue";
+import BottomMenu from './ui/BottomMenu.vue'
 
 const status = ref('Inicjalizacja systemu...')
 const hasError = ref(false)
@@ -197,6 +198,12 @@ const handleSatelliteClick = (sat: any) => {
   }
 }
 
+const handleSetLocation = (coords: { lat: number, lng: number }) => {
+  if (globeSceneRef.value) {
+    globeSceneRef.value.focusOn(coords.lat, coords.lng, 1.5)
+  }
+}
+
 const closePanel = () => {
   selectedSat.value = null
   rawPaths = []
@@ -237,6 +244,13 @@ const closePanel = () => {
         @select="handleSatelliteClick"
       />
     </transition>
+
+    <BottomMenu @set-location="handleSetLocation" />
+
+    <GlobeScene
+      ref="globeSceneRef"
+      @satellite-click="handleSatelliteClick"
+    />
 
     <GlobeScene
       ref="globeSceneRef"
