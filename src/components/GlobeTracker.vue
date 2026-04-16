@@ -15,7 +15,7 @@ const uiTrigger = ref(0)
 const globeSceneRef = ref<any>(null)
 
 let rawSatellites: any[] = []
-let rawHistory: any[] = []
+let rawPaths: any[] = []
 let animationInterval: number
 
 const startTracking = async () => {
@@ -134,33 +134,48 @@ const buildHistoryTrail = (sat: any) => {
   if (!sat || !sat.satrec) return
   const now = new Date()
   const pastPositions = []
+  const futurePositions = []
 
-  // Wyliczanie ogona dla 90 minut wstecz
-  for (let i = 90; i >= 0; i--) {
-    const pastDate = new Date(now.getTime() - i * 60000)
-    const positionAndVelocity = satellite.propagate(sat.satrec, pastDate)
-
-    if (!positionAndVelocity) continue;
+  const getPositionAt = (minutesOffset: number) => {
+    const targetDate = new Date(now.getTime() + minutesOffset * 60000)
+    const positionAndVelocity = satellite.propagate(sat.satrec, targetDate)
+    if (!positionAndVelocity) return null
 
     const positionEci = positionAndVelocity.position
-
     if (positionEci) {
-      const gmst = satellite.gstime(pastDate)
+      const gmst = satellite.gstime(targetDate)
       const positionGd = satellite.eciToGeodetic(positionEci as any, gmst)
       const lat = satellite.degreesLat(positionGd.latitude)
       const lng = satellite.degreesLong(positionGd.longitude)
       const alt = positionGd.height / 6371
 
       if (!isNaN(lat) && !isNaN(lng) && !isNaN(alt)) {
-        pastPositions.push({ lat, lng, alt })
+        return { lat, lng, alt }
       }
     }
+    return null
   }
 
-  rawHistory = pastPositions
+  for (let i = -90; i <= 0; i++) {
+    const pos = getPositionAt(i)
+    if (pos) pastPositions.push(pos)
+  }
+
+  for (let i = 0; i <= 15; i++) {
+    const pos = getPositionAt(i)
+    if (pos) futurePositions.push(pos)
+  }
+
+  rawPaths = []
+  if (pastPositions.length > 1) {
+    rawPaths.push({ points: pastPositions, isFuture: false })
+  }
+  if (futurePositions.length > 1) {
+    rawPaths.push({ points: futurePositions, isFuture: true })
+  }
 
   if (globeSceneRef.value) {
-    globeSceneRef.value.updateHistory(rawHistory)
+    globeSceneRef.value.updatePaths(rawPaths)
   }
 }
 
@@ -183,11 +198,10 @@ const handleSatelliteClick = (sat: any) => {
 
 const closePanel = () => {
   selectedSat.value = null
-  rawHistory = []
+  rawPaths = []
 
-  // Ukrywamy ogon
   if (globeSceneRef.value) {
-    globeSceneRef.value.updateHistory(rawHistory)
+    globeSceneRef.value.updateHistory(rawPaths)
   }
 }
 </script>
