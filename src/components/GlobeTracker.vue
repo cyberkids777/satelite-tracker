@@ -5,6 +5,7 @@ import * as satellite from 'satellite.js'
 import SatellitePanel from './ui/SatelitePanel.vue'
 import TopSatellitesPanel from './ui/TopSatellitesPanel.vue'
 import GlobeScene from './GlobeScene.vue'
+import SearchBar from "./ui/SearchBar.vue";
 
 const status = ref('Inicjalizacja systemu...')
 const hasError = ref(false)
@@ -208,11 +209,17 @@ const closePanel = () => {
 
 <template>
   <div class="tracker-container">
-    <div class="top-status">
+    <div v-if="uiTrigger === 0 || hasError" class="top-status">
       <p :class="{ 'error-text': hasError, 'success-text': !hasError }">
         {{ status }}
       </p>
     </div>
+
+    <SearchBar
+      v-if="!hasError && uiTrigger > 0"
+      :satellites="rawSatellites"
+      @select="handleSatelliteClick"
+    />
 
     <transition name="slide">
       <SatellitePanel
