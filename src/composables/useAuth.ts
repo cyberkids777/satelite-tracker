@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import { supabase } from '../supabase'
+import type { User } from '@supabase/supabase-js'
 
-const user = ref<any>(null)
+const user = ref<User | null>(null)
 const loading = ref(true)
 
 supabase.auth.onAuthStateChange((_event, session) => {

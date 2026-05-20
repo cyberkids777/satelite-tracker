@@ -11,8 +11,12 @@ const handleLogin = async () => {
   try {
     errorMsg.value = ''
     await loginWithGoogle()
-  } catch (err: any) {
-    errorMsg.value = err.message || 'Nie udało się połączyć z Google.'
+  } catch (err) {
+    if (err instanceof Error) {
+      errorMsg.value = err.message
+    } else {
+      errorMsg.value = 'Nie udało się połączyć z Google.'
+    }
   }
 }
 
@@ -20,8 +24,12 @@ const handleLogout = async () => {
   try {
     errorMsg.value = ''
     await logout()
-  } catch (err: any) {
-    errorMsg.value = err.message || 'Błąd podczas wylogowywania.'
+  } catch (err) {
+    if (err instanceof Error) {
+      errorMsg.value = err.message
+    } else {
+      errorMsg.value = 'Błąd podczas wylogowywania.'
+    }
   }
 }
 </script>
