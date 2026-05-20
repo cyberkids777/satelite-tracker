@@ -67,6 +67,7 @@ const handleSelect = (sat: any) => {
         <div class="panel-header">
           <h3>Popularne Obiekty</h3>
         </div>
+
         <ul class="sat-list">
           <li
             v-for="sat in topSatellites"
