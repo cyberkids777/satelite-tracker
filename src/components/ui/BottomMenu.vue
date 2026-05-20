@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LocationModal from './LocationModal.vue'
-import AuthModal from './AuthModal.vue' // NOWE: Import modala auth
-import { useAuth } from '../../composables/useAuth' // NOWE: Pobieramy stan zalogowania
+import AuthModal from './AuthModal.vue'
+import { useAuth } from '../../composables/useAuth'
 
 const emit = defineEmits(['set-location'])
 const activeModal = ref<string | null>(null)
 
-const { user } = useAuth() // NOWE: Obiekt użytkownika jest teraz dostępny w menu!
+const { user } = useAuth()
 
 const handleSetLocation = (coords: { lat: number, lng: number }) => {
   emit('set-location', coords)
@@ -89,13 +89,9 @@ const handleSetLocation = (coords: { lat: number, lng: number }) => {
 .disabled { opacity: 0.4; cursor: not-allowed; }
 .disabled:hover { transform: none; background: rgba(40, 40, 40, 0.8); border-color: #555; color: #ccc; }
 
-/* Kropka statusu online */
 .account-item { position: relative; }
 .online-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background-color: #4CAF50; border-radius: 50%; border: 1.5px solid rgba(20, 20, 20, 1); }
-.dock-item.active .online-dot { border-color: #FFCC00; } /* Dostosowanie ramki kropki do tła przycisku */
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.dock-item.active .online-dot { border-color: #FFCC00; }
 
 @media (max-width: 768px) { .bottom-dock-wrapper { bottom: 20px; } .dock-item { width: 45px; height: 45px; } .icon { width: 20px; height: 20px; } }
 </style>

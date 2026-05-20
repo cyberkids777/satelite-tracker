@@ -76,16 +76,13 @@ const handleLogout = async () => {
 .close-btn:hover { color: #fff; }
 .modal-body { padding: 25px 20px; }
 
-/* Styl Profilu */
 .profile-view { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid; margin-bottom: 12px; }
 .user-name { margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 600; }
 .user-email { margin: 0 0 15px 0; font-size: 0.85rem; color: #aaa; }
-.status-badge { font-size: 0.75rem; padding: 4px 12px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; border-radius: 12px; font-weight: bold; margin-bottom: 20px; }
 .logout-btn { width: 100%; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
 .logout-btn:hover { background: #bd2130; }
 
-/* Styl Logowania */
 .desc { font-size: 0.85rem; color: #aaa; margin-top: 0; margin-bottom: 25px; line-height: 1.4; text-align: center; }
 .google-btn { width: 100%; padding: 12px; background: #fff; color: #333; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 0.95rem; transition: background 0.2s; }
 .google-btn:hover { background: #f1f1f1; }
