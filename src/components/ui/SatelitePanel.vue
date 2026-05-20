@@ -15,11 +15,26 @@ defineEmits(['close'])
     </div>
 
     <div class="panel-content">
-      <div class="data-row"><span class="label">ID NORAD:</span><span class="value">{{ satellite.id }}</span></div>
+
+      <div class="data-row">
+        <span class="label">ID NORAD:</span>
+        <span class="value">
+          <a
+            :href="`https://www.n2yo.com/satellite/?s=${satellite.id}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="value"
+            title="Zobacz szczegóły na N2YO"
+          >
+            {{ satellite.id }} <span class="external-icon">↗</span>
+          </a>
+        </span>
+      </div>
+
       <div class="data-row"><span class="label">Wysokość:</span><span class="value">{{ satellite.realAlt.toFixed(2) }} km</span></div>
       <div class="data-row"><span class="label">Szerokość Geog.:</span><span class="value">{{ satellite.lat.toFixed(4) }}°</span></div>
       <div class="data-row"><span class="label">Długość Geog.:</span><span class="value">{{ satellite.lng.toFixed(4) }}°</span></div>
-      <div class="data-row"><span class="label">Prędkość:</span><span class="value highlight">{{ satellite.speed.toFixed(0) }} km/h</span></div>
+      <div class="data-row"><span class="label">Prędkość:</span><span class="value">{{ satellite.speed.toFixed(0) }} km/h</span></div>
       <div class="data-row"><span class="label">Ostatni odczyt:</span><span class="value">{{ satellite.timestamp }}</span></div>
     </div>
   </div>
@@ -35,8 +50,10 @@ defineEmits(['close'])
   box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
   overflow: hidden;
 }
+
+.value a { color: inherit; }
 .panel-header { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px 20px; border-bottom: 1px solid #333; }
-.panel-header h2 { margin: 0; font-size: 1.2rem; color: #4CAF50; }
+.panel-header h2 { margin: 0; font-size: 1.2rem;}
 .close-btn { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; transition: color 0.2s; }
 .close-btn:hover { color: #fff; }
 .panel-content { padding: 20px; }
@@ -44,7 +61,6 @@ defineEmits(['close'])
 .data-row:last-child { margin-bottom: 0; }
 .label { color: #aaa; }
 .value { font-weight: 600; text-align: right; }
-.highlight { color: #ffb74d; }
 
 @media (max-width: 768px) {
   .side-panel {
