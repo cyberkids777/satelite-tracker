@@ -1,17 +1,42 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-defineProps<{
+import { useAuth } from '../../composables/useAuth'
+import { useBookmarks } from '../../composables/useBookmarks'
+
+const props = defineProps<{
   satellite: any
 }>()
 
 defineEmits(['close'])
+
+const { user } = useAuth()
+const { isBookmarked, toggleBookmark } = useBookmarks()
+
+const handleBookmarkClick = () => {
+  if (user.value && props.satellite) {
+    toggleBookmark( user.value.id, props.satellite )
+  }
+}
 </script>
 
 <template>
   <div class="side-panel">
     <div class="panel-header">
       <h2>{{ satellite.name }}</h2>
-      <button @click="$emit('close')" class="close-btn">✖</button>
+      <div class="header-actions">
+        <button
+          v-if="user"
+          @click="handleBookmarkClick"
+          class="bookmark-btn"
+          :class="{ active: isBookmarked(satellite.id.toString()) }"
+          :title="isBookmarked(satellite.id.toString()) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" :fill="isBookmarked(satellite.id.toString()) ? '#FFCC00' : 'none'" :stroke="isBookmarked(satellite.id.toString()) ? '#FFCC00' : '#888'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </button>
+        <button @click="$emit('close')" class="close-btn">✖</button>
+      </div>
     </div>
 
     <div class="panel-content">
@@ -61,6 +86,11 @@ defineEmits(['close'])
 .data-row:last-child { margin-bottom: 0; }
 .label { color: #aaa; }
 .value { font-weight: 600; text-align: right; }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.bookmark-btn { background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; outline: none; }
+.bookmark-btn:hover { transform: scale(1.15); }
+.bookmark-btn:hover svg { stroke: #FFCC00; }
 
 @media (max-width: 768px) {
   .side-panel {
