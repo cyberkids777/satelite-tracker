@@ -23,7 +23,7 @@ export function useBookmarks() {
     }
   }
 
-  const toggleBookmark = async (userId: string, satellite: any) => {
+  const toggleBookmark = async (userId: string, satellite: { id: string | number; name: string }) => {
     if (!userId || !satellite?.id) return
 
     const noradId = satellite.id.toString()
