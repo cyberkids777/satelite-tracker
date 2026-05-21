@@ -1,5 +1,19 @@
 <script setup lang="ts">
 import GlobeTracker from './components/GlobeTracker.vue'
+import { watch } from 'vue'
+import { useAuth } from './composables/useAuth'
+import { useBookmarks } from './composables/useBookmarks'
+
+const { user } = useAuth()
+const { fetchBookmarks } = useBookmarks()
+
+watch(user, (newUser) => {
+  if (newUser) {
+    fetchBookmarks(newUser.id)
+  } else {
+    fetchBookmarks('')
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -7,7 +21,6 @@ import GlobeTracker from './components/GlobeTracker.vue'
 </template>
 
 <style>
-/* Resetujemy domyślne marginesy przeglądarki, żeby kosmos zajął cały ekran */
 html, body {
   margin: 0;
   padding: 0;
