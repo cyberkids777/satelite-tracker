@@ -7,11 +7,13 @@ import TopSatellitesPanel from './ui/TopSatellitesPanel.vue'
 import GlobeScene from './GlobeScene.vue'
 import SearchBar from "./ui/SearchBar.vue";
 import BottomMenu from './ui/BottomMenu.vue'
+import BookmarkedSatellites from './ui/BookmarkedSatellites.vue'
 
 const status = ref('Inicjalizacja systemu...')
 const hasError = ref(false)
 const selectedSat = ref<any>(null)
 const uiTrigger = ref(0)
+const isBookmarksOpen = ref(false)
 
 // Referencja do komponentu 3D, pozwalająca na bezpośrednie wstrzykiwanie danych
 const globeSceneRef = ref<any>(null)
@@ -204,6 +206,20 @@ const handleSetLocation = (coords: { lat: number, lng: number }) => {
   }
 }
 
+const handleSelectBookmarked = (noradId: string) => {
+  const sat = rawSatellites.find(s => s.id.toString() === noradId)
+
+  if (sat) {
+    handleSatelliteClick(sat)
+
+    if (window.innerWidth <= 768) {
+      isBookmarksOpen.value = false
+    }
+  } else {
+    console.warn(`Satelita ${noradId} jest w ulubionych, ale CelesTrak go już nie nadaje.`)
+  }
+}
+
 const closePanel = () => {
   selectedSat.value = null
   rawPaths = []
@@ -236,7 +252,7 @@ const closePanel = () => {
       />
     </transition>
 
-    <transition name="slide-right">
+    <transition name="slide">
       <TopSatellitesPanel
         v-if="uiTrigger > 0"
         :satellites="rawSatellites"
@@ -245,17 +261,25 @@ const closePanel = () => {
       />
     </transition>
 
-    <BottomMenu @set-location="handleSetLocation" />
+    <BottomMenu
+      @set-location="handleSetLocation"
+      :is-bookmarks-open="isBookmarksOpen"
+      @toggle-bookmarks="isBookmarksOpen = !isBookmarksOpen"
+    />
+
+    <transition name="slide">
+      <BookmarkedSatellites
+        v-if="isBookmarksOpen"
+        @select-satellite="handleSelectBookmarked"
+        @close="isBookmarksOpen = false"
+      />
+    </transition>
 
     <GlobeScene
       ref="globeSceneRef"
       @satellite-click="handleSatelliteClick"
     />
 
-    <GlobeScene
-      ref="globeSceneRef"
-      @satellite-click="handleSatelliteClick"
-    />
   </div>
 </template>
 

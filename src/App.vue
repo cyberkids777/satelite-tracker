@@ -3,7 +3,6 @@ import GlobeTracker from './components/GlobeTracker.vue'
 import { watch } from 'vue'
 import { useAuth } from './composables/useAuth'
 import { useBookmarks } from './composables/useBookmarks'
-
 const { user } = useAuth()
 const { fetchBookmarks } = useBookmarks()
 
