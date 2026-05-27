@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import LocationModal from './LocationModal.vue'
 import AuthModal from './AuthModal.vue'
-import { useAuth } from '../../composables/useAuth'
+import FaqModal from './FaqModal.vue'
+import { useAuth } from '@/composables/useAuth.ts'
 
 defineProps<{
   isBookmarksOpen?: boolean
@@ -36,17 +37,11 @@ const handleSetLocation = (coords: { lat: number, lng: number }) => {
         </svg>
       </button>
 
-      <button class="dock-item disabled" title="Filtry Satelitów">
+      <button class="dock-item" :class="{ active: activeModal === 'faq' }" @click="activeModal = 'faq'" title="FAQ / Pomoc">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-          <line x1="4" y1="21" x2="4" y2="14"></line>
-          <line x1="4" y1="10" x2="4" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12" y2="3"></line>
-          <line x1="20" y1="21" x2="20" y2="16"></line>
-          <line x1="20" y1="12" x2="20" y2="3"></line>
-          <line x1="1" y1="14" x2="7" y2="14"></line>
-          <line x1="9" y1="8" x2="15" y2="8"></line>
-          <line x1="17" y1="16" x2="23" y2="16"></line>
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       </button>
 
@@ -78,6 +73,15 @@ const handleSetLocation = (coords: { lat: number, lng: number }) => {
         />
       </transition>
     </Teleport>
+
+    <Teleport to="body">
+      <transition name="fade">
+        <FaqModal
+          v-if="activeModal === 'faq'"
+          @close="activeModal = null"
+        />
+      </transition>
+    </Teleport>
   </div>
 </template>
 
@@ -92,7 +96,7 @@ const handleSetLocation = (coords: { lat: number, lng: number }) => {
 .disabled:hover { transform: none; background: rgba(40, 40, 40, 0.8); border-color: #555; color: #ccc; }
 
 .account-item { position: relative; }
-.online-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background-color: #4CAF50; border-radius: 50%; border: 1.5px solid rgba(20, 20, 20, 1); }
+.online-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background-color: #4CAF50; border-radius: 50%; border: 2px solid rgba(20, 20, 20, 1); }
 .dock-item.active .online-dot { border-color: #FFCC00; }
 
 @media (max-width: 768px) { .bottom-dock-wrapper { bottom: 20px; } .dock-item { width: 45px; height: 45px; } .icon { width: 20px; height: 20px; } }

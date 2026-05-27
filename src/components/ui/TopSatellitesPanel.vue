@@ -143,7 +143,6 @@ const handleSelect = (sat: any) => {
   transform: translateY(-8.5px) rotate(-45deg);
   background-color: #E0F7FA;
 }
-/* ------------------------------------------ */
 
 .top-panel {
   width: 280px;
@@ -166,7 +165,7 @@ const handleSelect = (sat: any) => {
 .panel-header h3 {
   margin: 0;
   font-size: 1rem;
-  color: #E0F7FA;
+  color: #FFCC00;
 }
 
 .sat-list {
