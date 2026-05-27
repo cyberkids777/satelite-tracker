@@ -78,7 +78,7 @@ const handleBookmarkClick = () => {
 
 .value a { color: inherit; }
 .panel-header { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px 20px; border-bottom: 1px solid #333; }
-.panel-header h2 { margin: 0; font-size: 1.2rem;}
+.panel-header h2 { margin: 0; font-size: 1.2rem; color: #FFCC00;}
 .close-btn { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; transition: color 0.2s; }
 .close-btn:hover { color: #fff; }
 .panel-content { padding: 20px; }

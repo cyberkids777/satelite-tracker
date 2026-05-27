@@ -79,7 +79,7 @@ const handleLogout = async () => {
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 .modal-content { background: rgba(20, 20, 20, 0.95); border: 1px solid #444; border-radius: 16px; width: 320px; color: #fff; font-family: sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow: hidden; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid #333; }
-.modal-header h3 { margin: 0; font-size: 1.1rem; }
+.modal-header h3 { margin: 0; font-size: 1.1rem; color: #FFCC00; }
 .close-btn { background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; }
 .close-btn:hover { color: #fff; }
 .modal-body { padding: 25px 20px; }

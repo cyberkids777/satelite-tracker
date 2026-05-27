@@ -71,7 +71,7 @@ const handleRemove = (satellite: { norad_id: string; name: string }) => {
   display: flex; flex-direction: column;
 }
 .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #333; }
-.panel-header h2 { margin: 0; font-size: 1.1rem; }
+.panel-header h2 { margin: 0; font-size: 1.1rem; color: #FFCC00; }
 .panel-content { padding: 15px; overflow-y: auto; flex-grow: 1; }
 .empty-message { font-size: 0.85rem; color: #aaa; text-align: center; line-height: 1.5; padding: 15px 0; }
 
@@ -88,7 +88,6 @@ const handleRemove = (satellite: { norad_id: string; name: string }) => {
 .delete-btn { background: none; border: none; color: #888; cursor: pointer; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .delete-btn:hover { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
 
-/* Widok blokady */
 .unauthenticated-view { text-align: center; padding: 20px 10px; }
 .lock-icon { font-size: 1.8rem; margin-bottom: 12px; }
 .message { font-size: 0.85rem; color: #aaa; line-height: 1.4; margin: 0; }
