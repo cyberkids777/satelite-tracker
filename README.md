@@ -1,4 +1,4 @@
-# Satellite Tracker 3D
+# Satellite Tracker
 
 Zaawansowana aplikacja internetowa do śledzenia satelitów na orbicie okołoziemskiej w czasie rzeczywistym. Zbudowana przy użyciu nowoczesnego stosu technologicznego, renderuje obiekty w pełnym 3D, wykorzystując surowe dane z bazy CelesTrak. 
 
